@@ -35,3 +35,4 @@ class Proximity(nn.Module):
         loss = dist.mean()
 
         return loss
+ 
