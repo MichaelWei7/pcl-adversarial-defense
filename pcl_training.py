@@ -81,17 +81,13 @@ def main():
         transforms.ToTensor(),
         transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),])
     
-    trainset = torchvision.datasets.CIFAR10(root='./data/cifar10', train=True,
-                                             download=True, transform=transform_train)
-    trainloader = torch.utils.data.DataLoader(trainset, batch_size=args.train_batch, pin_memory=True,
-                                              shuffle=True, num_workers=args.workers)
+    trainset = torchvision.datasets.CIFAR10(root='./data/cifar10', train=True, download=True, transform=transform_train)
+    trainloader = torch.utils.data.DataLoader(trainset, batch_size=args.train_batch, pin_memory=True, shuffle=True, num_workers=args.workers)
 
-    testset = torchvision.datasets.CIFAR10(root='./data/cifar10', train=False,
-                                            download=True, transform=transform_test)
-    testloader = torch.utils.data.DataLoader(testset, batch_size=args.test_batch, pin_memory=True,
-                                             shuffle=False, num_workers=args.workers)
+    testset = torchvision.datasets.CIFAR10(root='./data/cifar10', train=False, download=True, transform=transform_test)
+    testloader = torch.utils.data.DataLoader(testset, batch_size=args.test_batch, pin_memory=True, shuffle=False, num_workers=args.workers)
     
-# Loading the Model    
+    # Loading the Model    
     model = resnet(num_classes=num_classes,depth=110)
 
     if True:
@@ -153,11 +149,7 @@ def main():
     elapsed = str(datetime.timedelta(seconds=elapsed))
     print("Finished. Total elapsed time (h:m:s): {}".format(elapsed))
 
-def train(model, criterion_xent, criterion_prox_1024, criterion_prox_256, 
-              criterion_conprox_1024, criterion_conprox_256, 
-              optimizer_model, optimizer_prox_1024, optimizer_prox_256,
-              optimizer_conprox_1024, optimizer_conprox_256,
-              trainloader, use_gpu, num_classes, epoch):
+def train(model, criterion_xent, criterion_prox_1024, criterion_prox_256,  criterion_conprox_1024, criterion_conprox_256,  optimizer_model, optimizer_prox_1024, optimizer_prox_256, optimizer_conprox_1024, optimizer_conprox_256, trainloader, use_gpu, num_classes, epoch):
     
     model.train()
     xent_losses = AverageMeter() #Computes and stores the average and current value
@@ -230,7 +222,6 @@ def train(model, criterion_xent, criterion_prox_1024, criterion_prox_256,
                           prox_losses_1024.val, prox_losses_1024.avg, prox_losses_256.val, prox_losses_256.avg , 
                           conprox_losses_1024.val, conprox_losses_1024.avg, conprox_losses_256.val,
                           conprox_losses_256.avg  ))
-
 
 def test(model, testloader, use_gpu, num_classes, epoch):
     model.eval()  
