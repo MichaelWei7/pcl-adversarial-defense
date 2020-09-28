@@ -31,14 +31,10 @@ from resnet_model import *  # Imports the ResNet Model
 
 
 parser = argparse.ArgumentParser("Prototype Conformity Loss Implementation")
-parser.add_argument('-j', '--workers', default=4, type=int,
-                    help="number of data loading workers (default: 4)")
-parser.add_argument('--train-batch', default=128, type=int, metavar='N',
-                    help='train batchsize')
-parser.add_argument('--test-batch', default=100, type=int, metavar='N',
-                    help='test batchsize')
-parser.add_argument('--schedule', type=int, nargs='+', default=[142, 230, 360],
-                        help='Decrease learning rate at these epochs.')
+parser.add_argument('-j', '--workers', default=4, type=int, help="number of data loading workers (default: 4)")
+parser.add_argument('--train-batch', default=128, type=int, metavar='N', help='train batchsize')
+parser.add_argument('--test-batch', default=100, type=int, metavar='N', help='test batchsize')
+parser.add_argument('--schedule', type=int, nargs='+', default=[142, 230, 360],     help='Decrease learning rate at these epochs.')
 parser.add_argument('--lr_model', type=float, default=0.01, help="learning rate for CE Loss")
 parser.add_argument('--lr_prox', type=float, default=0.5, help="learning rate for Proximity Loss") # as per paper
 parser.add_argument('--weight-prox', type=float, default=1, help="weight for Proximity Loss") # as per paper
