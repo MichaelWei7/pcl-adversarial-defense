@@ -31,25 +31,21 @@ from resnet_model import *  # Imports the ResNet Model
 
 
 parser = argparse.ArgumentParser("Prototype Conformity Loss Implementation")
-parser.add_argument('-j', '--workers', default=4, type=int,
-                    help="number of data loading workers (default: 4)")
-parser.add_argument('--train-batch', default=64, type=int, metavar='N',
-                    help='train batchsize')
-parser.add_argument('--test-batch', default=100, type=int, metavar='N',
-                    help='test batchsize')
-parser.add_argument('--schedule', type=int, nargs='+', default=[142, 230, 360],
-                        help='Decrease learning rate at these epochs.')
+parser.add_argument('-j', '--workers', default=4, type=int, help="number of data loading workers (default: 4)")
+parser.add_argument('--train-batch', default=16, type=int, metavar='N', help='train batchsize')
+parser.add_argument('--test-batch', default=20, type=int, metavar='N', help='test batchsize')
+parser.add_argument('--schedule', type=int, nargs='+', default=[142, 230, 360], help='Decrease learning rate at these epochs.')
 parser.add_argument('--lr_model', type=float, default=0.01, help="learning rate for model")
 parser.add_argument('--lr_prox', type=float, default=0.5, help="learning rate for Proximity Loss") # as per paper
 parser.add_argument('--weight-prox', type=float, default=1, help="weight for Proximity Loss") # as per paper
 parser.add_argument('--lr_conprox', type=float, default=0.00001, help="learning rate for Con-Proximity Loss") # as per paper
 parser.add_argument('--weight-conprox', type=float, default=0.00001, help="weight for Con-Proximity Loss") # as per paper
-parser.add_argument('--max-epoch', type=int, default=500)
+parser.add_argument('--max-epoch', type=int, default=3)
 parser.add_argument('--gamma', type=float, default=0.1, help="learning rate decay")
 parser.add_argument('--eval-freq', type=int, default=10)
-parser.add_argument('--print-freq', type=int, default=50)
+parser.add_argument('--print-freq', type=int, default=10)
 parser.add_argument('--gpu', type=str, default='0')
-parser.add_argument('--seed', type=int, default=1)
+parser.add_argument('--seed', type=int, default = 1)
 parser.add_argument('--use-cpu', action='store_true')
 parser.add_argument('--save-dir', type=str, default='log')
 
@@ -143,17 +139,14 @@ def main():
         transforms.ToTensor(),
         transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),])
     
-    trainset = torchvision.datasets.CIFAR10(root='./data/cifar10', train=True,
-                                             download=True, transform=transform_train)
-    trainloader = torch.utils.data.DataLoader(trainset, batch_size=args.train_batch, pin_memory=True,
-                                              shuffle=True, num_workers=args.workers)
+    trainset = torchvision.datasets.CIFAR10(root='./data/cifar10', train=True, download=True, transform=transform_train)
+    trainloader = torch.utils.data.DataLoader(trainset, batch_size=args.train_batch, pin_memory=True, shuffle=True, num_workers=args.workers)
 
-    testset = torchvision.datasets.CIFAR10(root='./data/cifar10', train=False,
-                                            download=True, transform=transform_test)
-    testloader = torch.utils.data.DataLoader(testset, batch_size=args.test_batch, pin_memory=True,
-                                             shuffle=False, num_workers=args.workers)
+    testset = torchvision.datasets.CIFAR10(root='./data/cifar10', train=False, download=True, transform=transform_test)
+    testloader = torch.utils.data.DataLoader(testset, batch_size=args.test_batch, pin_memory=True, shuffle=False, num_workers=args.workers)
     
 # Loading the Model    
+
     model = resnet(num_classes=num_classes,depth=110)
 
     if True:
@@ -215,13 +208,9 @@ def main():
     elapsed = str(datetime.timedelta(seconds=elapsed))
     print("Finished. Total elapsed time (h:m:s): {}".format(elapsed))
 
-def train(model, criterion_xent, criterion_prox_1024, criterion_prox_256, 
-              criterion_conprox_1024, criterion_conprox_256, 
-              optimizer_model, optimizer_prox_1024, optimizer_prox_256,
-              optimizer_conprox_1024, optimizer_conprox_256,
-              trainloader, use_gpu, num_classes, epoch):
+def train(model, criterion_xent, criterion_prox_1024, criterion_prox_256, criterion_conprox_1024, criterion_conprox_256,  optimizer_model, optimizer_prox_1024, optimizer_prox_256, optimizer_conprox_1024, optimizer_conprox_256, trainloader, use_gpu, num_classes, epoch):
     
-#    model.train()
+    #model.train()
     xent_losses = AverageMeter() #Computes and stores the average and current value
     prox_losses_1024 = AverageMeter()
     prox_losses_256= AverageMeter()
@@ -246,22 +235,28 @@ def train(model, criterion_xent, criterion_prox_1024, criterion_prox_256,
         labels= torch.cat((labels, true_labels_adv))
         model.train()
         
-        feats128, feats256, feats1024, outputs = model(data) 
-        loss_xent = criterion_xent(outputs, labels)  
+        # 代入模型
+        feats128, feats256, feats1024, outputs = model(data)
+
+        # 各种损失函数
+        loss_xent = criterion_xent(outputs, labels)
         
-        loss_prox_1024 = criterion_prox_1024(feats1024, labels) 
+        loss_prox_1024 = criterion_prox_1024(feats1024, labels)
         loss_prox_256= criterion_prox_256(feats256, labels)
         
         loss_conprox_1024 = criterion_conprox_1024(feats1024, labels) 
         loss_conprox_256= criterion_conprox_256(feats256, labels)
         
-        loss_prox_1024 *= args.weight_prox 
+        # 辅助损失加权
+        loss_prox_1024 *= args.weight_prox
         loss_prox_256 *= args.weight_prox
         
         loss_conprox_1024 *= args.weight_conprox 
         loss_conprox_256 *= args.weight_conprox
         
         loss = loss_xent + loss_prox_1024 + loss_prox_256  - loss_conprox_1024 - loss_conprox_256 # total loss
+
+        # 优化
         optimizer_model.zero_grad()
         
         optimizer_prox_1024.zero_grad()
@@ -271,7 +266,7 @@ def train(model, criterion_xent, criterion_prox_1024, criterion_prox_256,
         optimizer_conprox_256.zero_grad()
 
         loss.backward()
-        optimizer_model.step() 
+        optimizer_model.step()
         
         for param in criterion_prox_1024.parameters():
             param.grad.data *= (1. / args.weight_prox)
@@ -280,7 +275,6 @@ def train(model, criterion_xent, criterion_prox_1024, criterion_prox_256,
         for param in criterion_prox_256.parameters():
             param.grad.data *= (1. / args.weight_prox)
         optimizer_prox_256.step()
-        
 
         for param in criterion_conprox_1024.parameters():
             param.grad.data *= (1. / args.weight_conprox)
