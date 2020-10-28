@@ -133,7 +133,6 @@ class ResNet(nn.Module):
 
     def forward(self, x):
         x = self.conv1(x)
-        
 
         x = self.bn1(x)
         x = self.relu(x)   
@@ -145,14 +144,14 @@ class ResNet(nn.Module):
         m = m.view(m.size(0), -1) # 128 dimensional
         
         x = self.layer3(x)  
-
-
         x = self.avgpool(x)
+
+
         z = x.view(x.size(0), -1) # 256 dimensional
         x = self.fc(z)            # 1024 dimensional
         y = self.fcf(x)           # num_classes dimensional
-        
-        return  m, z, x, y   
+
+        return  m, z, x, y
 
 
 def resnet(**kwargs):
