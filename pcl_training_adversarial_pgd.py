@@ -224,15 +224,15 @@ def train(model, criterion_xent, criterion_prox_1024, criterion_prox_256, criter
         if use_gpu:
             data, labels = data.cuda(), labels.cuda()
         model.eval()
-        eps= np.random.uniform(0.02,0.05)
+        eps = np.random.uniform(0.02,0.05)
         adv = attack(model, criterion_xent, data, labels, eps=eps, attack_type='pgd', iters= 10) # Generates Batch-wise Adv Images
         adv.requires_grad= False
         
-        adv= normalize(adv)
-        adv= adv.cuda()
-        true_labels_adv= labels
-        data= torch.cat((data, adv),0)
-        labels= torch.cat((labels, true_labels_adv))
+        adv = normalize(adv)
+        adv = adv.cuda()
+        true_labels_adv = labels
+        data = torch.cat((data, adv),0)
+        labels = torch.cat((labels, true_labels_adv))
         model.train()
         
         # 代入模型
