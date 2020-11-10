@@ -99,6 +99,9 @@ def attack(model, criterion, img, label, eps, attack_type, iters):
             noise = adv.grad
 
         # Optimization step
+        print(adv.data.size())
+        print(noise.sign().size())
+        exit()
         adv.data = un_normalize(adv.data) + step * noise.sign()
 #        adv.data = adv.data + step * adv.grad.sign()
 
@@ -144,7 +147,7 @@ def main():
 
     testset = torchvision.datasets.CIFAR10(root='./data/cifar10', train=False, download=True, transform=transform_test)
     testloader = torch.utils.data.DataLoader(testset, batch_size=args.test_batch, pin_memory=True, shuffle=False, num_workers=args.workers)
-    
+
 # Loading the Model    
 
     model = resnet(num_classes=num_classes,depth=110)
@@ -155,18 +158,18 @@ def main():
     criterion_xent = nn.CrossEntropyLoss()
     criterion_prox_1024 = Proximity(num_classes=num_classes, feat_dim=1024, use_gpu=use_gpu)
     criterion_prox_256 = Proximity(num_classes=num_classes, feat_dim=256, use_gpu=use_gpu)
-    
+
     criterion_conprox_1024 = Con_Proximity(num_classes=num_classes, feat_dim=1024, use_gpu=use_gpu)
     criterion_conprox_256 = Con_Proximity(num_classes=num_classes, feat_dim=256, use_gpu=use_gpu)
-    
+
     optimizer_model = torch.optim.SGD(model.parameters(), lr=args.lr_model, weight_decay=1e-04, momentum=0.9)
-    
+
     optimizer_prox_1024 = torch.optim.SGD(criterion_prox_1024.parameters(), lr=args.lr_prox)
     optimizer_prox_256 = torch.optim.SGD(criterion_prox_256.parameters(), lr=args.lr_prox)
 
     optimizer_conprox_1024 = torch.optim.SGD(criterion_conprox_1024.parameters(), lr=args.lr_conprox)
     optimizer_conprox_256 = torch.optim.SGD(criterion_conprox_256.parameters(), lr=args.lr_conprox)
-    
+
 
     filename= 'Models_Softmax/CIFAR10_Softmax.pth.tar'
     checkpoint = torch.load(filename)
@@ -230,8 +233,7 @@ def train(model, criterion_xent, criterion_prox_1024, criterion_prox_256, criter
         adv = adv.cuda()
         true_labels_adv = labels
         data = torch.cat((data, adv), dim = 0)
-        print(data.size())
-        exit()
+
         labels = torch.cat((labels, true_labels_adv))
         model.train()
         
