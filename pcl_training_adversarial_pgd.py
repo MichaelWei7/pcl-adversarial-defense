@@ -90,26 +90,23 @@ def attack(model, criterion, img, label, eps, attack_type, iters):
         loss.backward()
 
         if attack_type == 'mim':
-            adv_mean= torch.mean(torch.abs(adv.grad), dim=1,  keepdim=True)
-            adv_mean= torch.mean(torch.abs(adv_mean), dim=2,  keepdim=True)
-            adv_mean= torch.mean(torch.abs(adv_mean), dim=3,  keepdim=True)
+            adv_mean= torch.mean(torch.abs(adv.grad), dim = 1,  keepdim = True)
+            adv_mean= torch.mean(torch.abs(adv_mean), dim = 2,  keepdim = True)
+            adv_mean= torch.mean(torch.abs(adv_mean), dim = 3,  keepdim = True)
             adv.grad = adv.grad / adv_mean
             noise = noise + adv.grad
         else:
             noise = adv.grad
 
         # Optimization step
-        print(adv.data.size())
-        print(noise.sign().size())
-        exit()
         adv.data = un_normalize(adv.data) + step * noise.sign()
 #        adv.data = adv.data + step * adv.grad.sign()
 
         if attack_type == 'pgd':
             adv.data = torch.where(adv.data > img.data + eps, img.data + eps, adv.data)
             adv.data = torch.where(adv.data < img.data - eps, img.data - eps, adv.data)
+            
         adv.data.clamp_(0.0, 1.0)
-
         adv.grad.data.zero_()
 
     return adv.detach()
